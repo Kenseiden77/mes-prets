@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Prêts - Suivi Simple & Rapide</title>
+    <!-- Tailwind CSS pour un design moderne -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex flex-col antialiased">
+
+    <!-- APPLI WRAPPER -->
+    <div id="app" class="flex-grow flex flex-col">
+
+        <!-- HEADER / NAVBAR -->
+        <header id="navbar" class="bg-indigo-600 text-white shadow-md transition-all hidden">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-500 p-2 rounded-lg">
+                        <i class="fa-solid fa-hand-holding-heart text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-bold tracking-wide">MesPrêts</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <span id="user-display" class="text-sm font-medium bg-indigo-700 px-3 py-1.5 rounded-full flex items-center gap-2">
+                        <i class="fa-regular fa-user"></i> <span id="user-email-text"></span>
+                    </span>
+                    <button id="btn-logout" class="text-sm bg-indigo-800 hover:bg-indigo-900 transition-colors px-3 py-1.5 rounded-lg font-medium flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Déconnexion</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENU PRINCIPAL -->
+        <main class="flex-grow max-w-6xl w-full mx-auto p-4 sm:p-6">
+
+            <!-- SECTION AUTHENTIFICATION (Connexion / Inscription) -->
+            <section id="auth-section" class="max-w-md mx-auto my-12 bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+                <div class="text-center mb-8">
+                    <div class="inline-flex bg-indigo-100 text-indigo-600 p-4 rounded-full mb-3">
+                        <i class="fa-solid fa-boxes-packing text-3xl"></i>
+                    </div>
+                    <h2 id="auth-title" class="text-2xl font-bold text-slate-800">Connexion</h2>
+                    <p id="auth-subtitle" class="text-slate-500 text-sm mt-1">Gérez facilement vos prêts à vos proches</p>
+                </div>
+
+                <!-- Formulaire Auth -->
+                <form id="auth-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Identifiant ou Email</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-regular fa-envelope"></i>
+                            </span>
+                            <input type="text" id="auth-username" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition-all" placeholder="votre_nom">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Mot de passe</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" id="auth-password" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition-all" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Message d'erreur/succès -->
+                    <div id="auth-message" class="hidden text-sm p-3 rounded-lg text-center"></div>
+
+                    <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg active:scale-[0.98]">
+                        Se connecter
+                    </button>
+                </form>
+
+                <!-- Basculer entre Connexion / Inscription -->
+                <div class="mt-6 text-center text-sm text-slate-500">
+                    <span id="auth-toggle-text">Pas encore de compte ?</span>
+                    <button id="auth-toggle-btn" class="text-indigo-600 font-semibold hover:underline ml-1">
+                        Créer un compte
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION TABLEAU DE BORD (Visuel après connexion) -->
+            <section id="dashboard-section" class="hidden space-y-6">
+
+                <!-- BARRE DES STATISTIQUES -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total des Prêts</p>
+                            <h3 id="stat-total" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
+                            <i class="fa-solid fa-list-check text-xl"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-amber-600 uppercase tracking-wider">En cours</p>
+                            <h3 id="stat-pending" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                        </div>
+                        <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
+                            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Rendus</p>
+                            <h3 id="stat-returned" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                        </div>
+                        <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                            <i class="fa-solid fa-circle-check text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIONS ET FILTRES -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+                    
+                    <!-- Recherche & Filtres -->
+                    <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-grow max-w-xl">
+                        <!-- Recherche -->
+                        <div class="relative flex-grow">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </span>
+                            <input type="text" id="search-input" placeholder="Rechercher un objet ou un prêté..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <!-- Filtre Statut -->
+                        <select id="filter-status" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="all">Tous les prêts</option>
+                            <option value="pending">En cours uniquement</option>
+                            <option value="returned">Rendus uniquement</option>
+                        </select>
+                    </div>
+
+                    <!-- Boutons d'Action -->
+                    <div class="flex gap-2 w-full md:w-auto justify-end">
+                        <button id="btn-open-add-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow flex items-center gap-2 transition-all">
+                            <i class="fa-solid fa-plus"></i> Nouveau prêt
+                        </button>
+
+                        <!-- Menu Export/Import Data -->
+                        <button id="btn-export-json" title="Exporter les données" class="p-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                        <label title="Importer des données JSON" class="p-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">
+                            <i class="fa-solid fa-upload"></i>
+                            <input type="file" id="import-file" accept=".json" class="hidden">
+                        </label>
+                    </div>
+
+                </div>
+
+                <!-- LISTE DES PRÊTS -->
+                <div id="loans-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Les cartes de prêt seront insérées dynamiquement ici -->
+                </div>
+
+                <!-- ETAT VIDE (Si aucun prêt) -->
+                <div id="empty-state" class="hidden bg-white rounded-xl border border-dashed border-slate-300 p-12 text-center">
+                    <div class="text-slate-300 text-5xl mb-3">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-slate-700">Aucun prêt trouvé</h4>
+                    <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">Vous n'avez enregistrez aucun prêt pour le moment ou aucun résultat ne correspond à votre recherche.</p>
+                    <button id="btn-empty-add" class="mt-4 inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 font-medium px-4 py-2 rounded-lg text-sm hover:bg-indigo-100 transition-colors">
+                        <i class="fa-solid fa-plus"></i> Ajouter un prêt
+                    </button>
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
+            <p>Application autonome - Prête pour déploiement GitHub Pages</p>
+        </footer>
+
+    </div>
+
+    <!-- MODAL AJOUT / ÉDITION PRÊT -->
+    <div id="loan-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+            <div class="flex justify-between items-center mb-5">
+                <h3 id="modal-title" class="text-lg font-bold text-slate-800">Nouveau Prêt</h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="loan-form" class="space-y-4">
+                <input type="hidden" id="loan-id">
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Nom de l'objet / somme *</label>
+                    <input type="text" id="loan-item" required placeholder="Ex: Perceuse, Livre Harry Potter, 50€..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Prêté à qui ? *</label>
+                    <input type="text" id="loan-person" required placeholder="Ex: Thomas, Marie, Cousin Alex..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Date du prêt *</label>
+                    <input type="date" id="loan-date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Notes / Détails (optionnel)</label>
+                    <textarea id="loan-notes" rows="2" placeholder="Ex: Avec les forets inclus, retour prévu le mois prochain..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <div class="pt-3 flex gap-3">
+                    <button type="button" id="btn-cancel-modal" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-lg text-sm font-medium transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium transition-colors shadow">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION CUSTOM ( Toast ) -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-xl text-sm hidden items-center gap-3 transition-opacity duration-300 z-50">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-indigo-400"></i>
+        <span id="toast-message">Message</span>
+    </div>
+
+    <!-- SCRIPTS DE L'APPLICATION -->
+    <script>
+        /**
+         * GESTION DE L'APPLICATION (Stockage Local pour GitHub Pages)
+         */
+
+        // Variables d'état globales
+        let currentUser = null;
+        let isLoginMode = true;
+        let loansData = [];
+
+        // Éléments DOM Auth
+        const authSection = document.getElementById('auth-section');
+        const authForm = document.getElementById('auth-form');
+        const authTitle = document.getElementById('auth-title');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        const authUsernameInput = document.getElementById('auth-username');
+        const authPasswordInput = document.getElementById('auth-password');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const authToggleBtn = document.getElementById('auth-toggle-btn');
+        const authToggleText = document.getElementById('auth-toggle-text');
+        const authMessage = document.getElementById('auth-message');
+
+        // Éléments DOM Dashboard & UI
+        const navbar = document.getElementById('navbar');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const userEmailText = document.getElementById('user-email-text');
+        const btnLogout = document.getElementById('btn-logout');
+        const loansContainer = document.getElementById('loans-container');
+        const emptyState = document.getElementById('empty-state');
+
+        // Stats
+        const statTotal = document.getElementById('stat-total');
+        const statPending = document.getElementById('stat-pending');
+        const statReturned = document.getElementById('stat-returned');
+
+        // Filtres & Recherche
+        const searchInput = document.getElementById('search-input');
+        const filterStatus = document.getElementById('filter-status');
+
+        // Modal
+        const loanModal = document.getElementById('loan-modal');
+        const loanForm = document.getElementById('loan-form');
+        const modalTitle = document.getElementById('modal-title');
+        const loanIdInput = document.getElementById('loan-id');
+        const loanItemInput = document.getElementById('loan-item');
+        const loanPersonInput = document.getElementById('loan-person');
+        const loanDateInput = document.getElementById('loan-date');
+        const loanNotesInput = document.getElementById('loan-notes');
+        const btnOpenAddModal = document.getElementById('btn-open-add-modal');
+        const btnEmptyAdd = document.getElementById('btn-empty-add');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnCancelModal = document.getElementById('btn-cancel-modal');
+
+        // Export / Import
+        const btnExportJson = document.getElementById('btn-export-json');
+        const importFileInput = document.getElementById('import-file');
+
+        // Toast
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        // --- INITIALISATION DE L'APPLICATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuthSession();
+            setupEventListeners();
+            // Définir la date d'aujourd'hui par défaut dans le formulaire
+            loanDateInput.value = new Date().toISOString().split('T')[0];
+        });
+
+        // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
+        function setupEventListeners() {
+            // Auth Toggle
+            authToggleBtn.addEventListener('click', toggleAuthMode);
+            authForm.addEventListener('submit', handleAuthSubmit);
+            btnLogout.addEventListener('click', handleLogout);
+
+            // Modal Handlers
+            btnOpenAddModal.addEventListener('click', () => openModal());
+            btnEmptyAdd.addEventListener('click', () => openModal());
+            btnCloseModal.addEventListener('click', closeModal);
+            btnCancelModal.addEventListener('click', closeModal);
+            loanForm.addEventListener('submit', handleLoanSubmit);
+
+            // Dashboard interactions
+            searchInput.addEventListener('input', renderLoans);
+            filterStatus.addEventListener('change', renderLoans);
+
+            // Import/Export
+            btnExportJson.addEventListener('click', exportDataToJSON);
+            importFileInput.addEventListener('change', importDataFromJSON);
+        }
+
+        // --- SYSTÈME D'AUTHENTIFICATION SIMPLE ---
+        function checkAuthSession() {
+            const savedUser = localStorage.getItem('loan_tracker_session');
+            if (savedUser) {
+                currentUser = savedUser;
+                showDashboard();
+            } else {
+                showAuth();
+            }
+        }
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            authMessage.classList.add('hidden');
+            if (isLoginMode) {
+                authTitle.textContent = "Connexion";
+                authSubtitle.textContent = "Gérez facilement vos prêts à vos proches";
+                authSubmitBtn.textContent = "Se connecter";
+                authToggleText.textContent = "Pas encore de compte ?";
+                authToggleBtn.textContent = "Créer un compte";
+            } else {
+                authTitle.textContent = "Créer un compte";
+                authSubtitle.textContent = "Inscrivez-vous pour sauvegarder vos prêts";
+                authSubmitBtn.textContent = "Créer mon compte";
+                authToggleText.textContent = "Déjà un compte ?";
+                authToggleBtn.textContent = "Se connecter";
+            }
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const username = authUsernameInput.value.trim().toLowerCase();
+            const password = authPasswordInput.value.trim();
+
+            if (!username || !password) return;
+
+            const users = JSON.parse(localStorage.getItem('loan_tracker_users') || '{}');
+
+            if (isLoginMode) {
+                // Tentative de connexion
+                if (users[username] && users[username] === password) {
+                    currentUser = username;
+                    localStorage.setItem('loan_tracker_session', currentUser);
+                    showToast('Connexion réussie !');
+                    showDashboard();
+                } else {
+                    showAuthError("Identifiant ou mot de passe incorrect.");
+                }
+            } else {
+                // Inscription
+                if (users[username]) {
+                    showAuthError("Cet identifiant existe déjà.");
+                } else {
+                    users[username] = password;
+                    localStorage.setItem('loan_tracker_users', JSON.stringify(users));
+                    currentUser = username;
+                    localStorage.setItem('loan_tracker_session', currentUser);
+                    showToast('Compte créé avec succès !');
+                    showDashboard();
+                }
+            }
+        }
+
+        function showAuthError(msg) {
+            authMessage.textContent = msg;
+            authMessage.className = "text-sm p-3 rounded-lg text-center bg-red-50 text-red-600 block";
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('loan_tracker_session');
+            currentUser = null;
+            authUsernameInput.value = '';
+            authPasswordInput.value = '';
+            showAuth();
+            showToast('Vous êtes déconnecté.');
+        }
+
+        function showAuth() {
+            navbar.classList.add('hidden');
+            dashboardSection.classList.add('hidden');
+            authSection.classList.remove('hidden');
+        }
+
+        function showDashboard() {
+            authSection.classList.add('hidden');
+            navbar.classList.remove('hidden');
+            dashboardSection.classList.remove('hidden');
+            userEmailText.textContent = currentUser;
+            loadUserLoans();
+            renderLoans();
+        }
+
+        // --- GESTION DES DONNÉES (LOCALSTORAGE) ---
+        function loadUserLoans() {
+            const allData = JSON.parse(localStorage.getItem(`loans_data_${currentUser}`) || '[]');
+            loansData = allData;
+        }
+
+        function saveLoans() {
+            localStorage.setItem(`loans_data_${currentUser}`, JSON.stringify(loansData));
+            renderLoans();
+        }
+
+        // --- GESTION DES PRÊTS (CRUD) ---
+        function openModal(loanToEdit = null) {
+            loanForm.reset();
+            loanDateInput.value = new Date().toISOString().split('T')[0];
+
+            if (loanToEdit) {
+                modalTitle.textContent = "Modifier le prêt";
+                loanIdInput.value = loanToEdit.id;
+                loanItemInput.value = loanToEdit.item;
+                loanPersonInput.value = loanToEdit.person;
+                loanDateInput.value = loanToEdit.date;
+                loanNotesInput.value = loanToEdit.notes || '';
+            } else {
+                modalTitle.textContent = "Nouveau prêt";
+                loanIdInput.value = '';
+            }
+
+            loanModal.classList.remove('hidden');
+            loanModal.classList.add('flex');
+        }
+
+        function closeModal() {
+            loanModal.classList.add('hidden');
+            loanModal.classList.remove('flex');
+        }
+
+        function handleLoanSubmit(e) {
+            e.preventDefault();
+            const id = loanIdInput.value;
+            const item = loanItemInput.value.trim();
+            const person = loanPersonInput.value.trim();
+            const date = loanDateInput.value;
+            const notes = loanNotesInput.value.trim();
+
+            if (!item || !person || !date) return;
+
+            if (id) {
+                // Modification
+                const index = loansData.findIndex(l => l.id === id);
+                if (index !== -1) {
+                    loansData[index] = { ...loansData[index], item, person, date, notes };
+                    showToast('Prêt mis à jour.');
+                }
+            } else {
+                // Création
+                const newLoan = {
+                    id: Date.now().toString(),
+                    item,
+                    person,
+                    date,
+                    notes,
+                    returned: false,
+                    createdAt: new Date().toISOString()
+                };
+                loansData.unshift(newLoan);
+                showToast('Prêt ajouté avec succès.');
+            }
+
+            saveLoans();
+            closeModal();
+        }
+
+        function toggleStatus(id) {
+            const loan = loansData.find(l => l.id === id);
+            if (loan) {
+                loan.returned = !loan.returned;
+                saveLoans();
+                showToast(loan.returned ? 'Objet marqué comme rendu !' : 'Prêt remis en cours.');
+            }
+        }
+
+        function deleteLoan(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce prêt ?")) {
+                loansData = loansData.filter(l => l.id !== id);
+                saveLoans();
+                showToast('Prêt supprimé.');
+            }
+        }
+
+        // --- AFFICHAGE DE LA LISTE ET DES STATISTIQUES ---
+        function renderLoans() {
+            const query = searchInput.value.toLowerCase().trim();
+            const filter = filterStatus.value;
+
+            // Filtration
+            const filteredLoans = loansData.filter(loan => {
+                const matchesSearch = loan.item.toLowerCase().includes(query) || 
+                                      loan.person.toLowerCase().includes(query) ||
+                                      (loan.notes && loan.notes.toLowerCase().includes(query));
+                
+                let matchesStatus = true;
+                if (filter === 'pending') matchesStatus = !loan.returned;
+                if (filter === 'returned') matchesStatus = loan.returned;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            // Mise à jour des stats
+            updateStats();
+
+            // Vider le conteneur
+            loansContainer.innerHTML = '';
+
+            if (filteredLoans.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+
+                filteredLoans.forEach(loan => {
+                    const card = document.createElement('div');
+                    card.className = `bg-white rounded-xl border ${loan.returned ? 'border-slate-200 bg-slate-50/50' : 'border-slate-200 shadow-sm hover:shadow-md'} p-5 flex flex-col justify-between transition-all`;
+
+                    // Formater la date en français
+                    const formattedDate = new Date(loan.date).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+
+                    card.innerHTML = `
+                        <div>
+                            <!-- Badge et Actions haut -->
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${
+                                    loan.returned 
+                                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                                    : 'bg-amber-100 text-amber-700 border border-amber-200'
+                                }">
+                                    <i class="fa-solid ${loan.returned ? 'fa-check' : 'fa-hourglass-half'} text-[10px] mr-1"></i>
+                                    ${loan.returned ? 'Rendu' : 'En cours'}
+                                </span>
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="openEditModal('${loan.id}')" title="Éditer" class="text-slate-400 hover:text-indigo-600 p-1 rounded transition-colors">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteLoan('${loan.id}')" title="Supprimer" class="text-slate-400 hover:text-red-600 p-1 rounded transition-colors">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Nom de l'objet prêté -->
+                            <h3 class="text-lg font-bold text-slate-800 ${loan.returned ? 'line-through text-slate-400' : ''}">
+                                ${escapeHtml(loan.item)}
+                            </h3>
+
+                            <!-- Informations Prêté à & Date -->
+                            <div class="mt-2 space-y-1 text-sm text-slate-600">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-regular fa-user text-indigo-500 w-4"></i>
+                                    <span>À : <strong class="text-slate-800">${escapeHtml(loan.person)}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-500">
+                                    <i class="fa-regular fa-calendar text-slate-400 w-4"></i>
+                                    <span>Prêté le ${formattedDate}</span>
+                                </div>
+                            </div>
+
+                            <!-- Notes éventuelles -->
+                            ${loan.notes ? `
+                                <div class="mt-3 text-xs bg-slate-50 p-2.5 rounded-lg text-slate-600 border border-slate-100 italic">
+                                    "${escapeHtml(loan.notes)}"
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Bouton de changement de statut -->
+                        <div class="mt-5 pt-3 border-t border-slate-100">
+                            <button onclick="toggleStatus('${loan.id}')" class="w-full py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                                loan.returned 
+                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' 
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                            }">
+                                <i class="fa-solid ${loan.returned ? 'fa-rotate-left' : 'fa-check'}"></i>
+                                ${loan.returned ? 'Marquer comme EN COURS' : 'Marquer comme RENDU'}
+                            </button>
+                        </div>
+                    `;
+
+                    loansContainer.appendChild(card);
+                });
+            }
+        }
+
+        function updateStats() {
+            const total = loansData.length;
+            const pending = loansData.filter(l => !l.returned).length;
+            const returned = loansData.filter(l => l.returned).length;
+
+            statTotal.textContent = total;
+            statPending.textContent = pending;
+            statReturned.textContent = returned;
+        }
+
+        function openEditModal(id) {
+            const loan = loansData.find(l => l.id === id);
+            if (loan) openModal(loan);
+        }
+
+        // --- EXPORT & IMPORT DE DONNÉES (Utile pour sauvegarder/sauvegarder sur GitHub Pages) ---
+        function exportDataToJSON() {
+            if (loansData.length === 0) {
+                showToast("Aucune donnée à exporter.");
+                return;
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(loansData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `mes_prets_sauvegarde_${currentUser}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Sauvegarde JSON téléchargée.");
+        }
+
+        function importDataFromJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        loansData = importedData;
+                        saveLoans();
+                        showToast("Données importées avec succès !");
+                    } else {
+                        showToast("Format JSON invalide.");
+                    }
+                } catch (err) {
+                    showToast("Erreur lors de la lecture du fichier JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- UTILITAIRES ---
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
