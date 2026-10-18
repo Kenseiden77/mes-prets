@@ -12,13 +12,22 @@
 
   <div class="max-w-2xl mx-auto space-y-6">
 
-    <!-- En-tête -->
-    <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-      <h1 class="text-xl font-bold text-indigo-600">📦 Mes Prêts</h1>
-      <button id="logout-btn" onclick="logout()" class="hidden text-sm bg-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-300">
-        Déconnexion
-      </button>
-    </header>
+    <!-- En-tête avec version et bouton de rafraîchissement -->
+<header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+  <div class="flex items-center gap-2">
+    <h1 class="text-xl font-bold text-indigo-600">📦 Mes Prêts</h1>
+    <span class="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full border">v1.0.1</span>
+    
+    <!-- Bouton Réactualiser -->
+    <button onclick="forceRefresh()" title="Vider le cache et rafraîchir" class="text-slate-400 hover:text-indigo-600 p-1 text-xs">
+      🔄
+    </button>
+  </div>
+  
+  <button id="logout-btn" onclick="logout()" class="hidden text-sm bg-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-300">
+    Déconnexion
+  </button>
+</header>
 
     <!-- SECTION 1 : Authentification (Connexion / Inscription / Réinitialisation) -->
     <div id="auth-section" class="bg-white rounded-xl shadow-md p-6">
@@ -259,6 +268,18 @@
     async function logout() {
       await supabase.auth.signOut();
     }
+
+    // force refresh
+    async function forceRefresh() {
+  // Vider les caches enregistrés par le navigateur si présents
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+  }
+  
+  // Recharger la page en contournant le cache local
+  window.location.reload(true);
+}
 
     // Fonctions d'affichage
     function showAuthScreen() {
