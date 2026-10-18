@@ -3,154 +3,373 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mes Prêts - Test Simple</title>
+  <title>Mes Prêts - Suivi d'Objets</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body class="bg-slate-100 p-6">
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased pb-12">
 
-  <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow space-y-4">
-    <h1 class="text-xl font-bold text-center">📦 Mes Prêts (v1.0.3)</h1>
+  <!-- En-tête Global -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md shadow-indigo-200">
+          📦
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">Mes Prêts</h1>
+          <p class="text-xs text-slate-500 font-medium">Gestion d'objets & affaires</p>
+        </div>
+      </div>
+      <div id="user-badge" class="hidden items-center gap-3">
+        <span id="user-email-display" class="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 hidden sm:inline-block"></span>
+        <button id="btn-logout" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 rounded-lg transition-colors border border-slate-200">
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </header>
 
-    <!-- FORMULAIRE DE CONNEXION -->
-    <div id="box-login" class="space-y-3">
-      <div>
-        <label class="block text-sm font-medium">Email</label>
-        <input type="email" id="txt-email" class="w-full p-2 border rounded">
+  <main class="max-w-4xl mx-auto px-4 mt-6">
+
+    <!-- ECRAN DE CONNEXION -->
+    <div id="box-login" class="max-w-md mx-auto bg-white rounded-2xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6">
+      <div class="text-center space-y-1">
+        <h2 class="text-2xl font-bold text-slate-900">Connexion</h2>
+        <p class="text-sm text-slate-500">Accédez à votre espace de suivi de prêts</p>
       </div>
-      <div>
-        <label class="block text-sm font-medium">Mot de passe</label>
-        <input type="password" id="txt-pass" class="w-full p-2 border rounded">
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Email</label>
+          <input type="email" id="txt-email" placeholder="votre@email.com" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Mot de passe</label>
+          <input type="password" id="txt-pass" placeholder="••••••••" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition-all">
+        </div>
+        <button id="btn-login" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-indigo-100 transition-all text-sm">
+          Se connecter
+        </button>
+        <div id="login-status" class="text-xs text-rose-500 font-medium text-center"></div>
       </div>
-      <button id="btn-login" class="w-full bg-indigo-600 text-white py-2 rounded font-bold">
-        Se connecter
-      </button>
-      <div id="login-status" class="text-xs text-red-500 font-semibold text-center"></div>
     </div>
 
-    <!-- ZONE PRÊTS (Cachée au départ) -->
-    <div id="box-app" class="hidden space-y-4">
-      <div class="p-3 bg-emerald-100 text-emerald-800 rounded text-sm font-semibold text-center">
-        ✅ Connecté !
+    <!-- DASHBOARD PRINCIPAL -->
+    <div id="box-app" class="hidden space-y-6">
+
+      <!-- Statistiques rapides -->
+      <div class="grid grid-cols-3 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En cours</span>
+          <span id="stat-active" class="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1">0</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rendus</span>
+          <span id="stat-returned" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">0</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total</span>
+          <span id="stat-total" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1">0</span>
+        </div>
       </div>
 
-      <div class="border-t pt-3 space-y-2">
-        <h2 class="font-bold">Ajouter un prêt</h2>
-        <input type="text" id="loan-obj" placeholder="Objet (ex: Perceuse)" class="w-full p-2 border rounded">
-        <input type="text" id="loan-who" placeholder="À qui ? (ex: Julien)" class="w-full p-2 border rounded">
-        <button id="btn-add" class="w-full bg-emerald-600 text-white py-2 rounded font-bold">
-          Enregistrer le prêt
+      <!-- Formulaire d'ajout d'un prêt -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+            <span>✨ Nouveau prêt</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Nom de l'objet ou prêt *</label>
+            <input type="text" id="loan-obj" placeholder="ex: Perceuse, Livre, 50€" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Prêté à *</label>
+            <input type="text" id="loan-who" placeholder="ex: Julien" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Date du prêt *</label>
+            <input type="date" id="loan-date" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Photo de l'objet (optionnel)</label>
+            <input type="file" id="loan-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Note / Détail (optionnel)</label>
+            <input type="text" id="loan-notes" placeholder="ex: Coffret complet avec accessoires" class="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+        </div>
+
+        <button id="btn-add" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-2">
+          <span>➕ Enregistrer le prêt</span>
         </button>
       </div>
 
-      <div class="border-t pt-3 space-y-2">
-        <h2 class="font-bold">Liste des prêts</h2>
-        <div id="loans-container" class="space-y-2 text-sm"></div>
+      <!-- Filtres et Recherche -->
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="relative w-full sm:w-64">
+          <input type="text" id="search-input" onkeyup="filterLoans()" placeholder="Rechercher un objet, ami..." class="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+          <span class="absolute left-3 top-2 text-slate-400 text-xs">🔍</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-slate-200 p-1 rounded-lg w-full sm:w-auto text-xs font-medium">
+          <button onclick="setFilter('all')" id="filter-all" class="filter-btn flex-1 sm:flex-none px-3 py-1 rounded-md bg-white text-slate-900 shadow-sm">Tous</button>
+          <button onclick="setFilter('pending')" id="filter-pending" class="filter-btn flex-1 sm:flex-none px-3 py-1 rounded-md text-slate-600 hover:text-slate-900">En cours</button>
+          <button onclick="setFilter('returned')" id="filter-returned" class="filter-btn flex-1 sm:flex-none px-3 py-1 rounded-md text-slate-600 hover:text-slate-900">Rendus</button>
+        </div>
       </div>
+
+      <!-- Liste des cartes de prêts -->
+      <div id="loans-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Les cartes s'affichent ici -->
+      </div>
+
     </div>
 
-  </div>
+  </main>
 
   <script>
     const SUPABASE_URL = "https://oascemhvoyroxtthwwkn.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hc2NlbWh2b3lyb3h0dGh3d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjczMzYsImV4cCI6MjEwNzkwMzMzNn0.WPi_ErafVvZGD3Ubn2JTU5WSP_TldKXraXsSq0Ra8Vg";
 
     let supabaseClient = null;
+    let allLoansData = [];
+    let currentFilter = 'all';
 
-    // Attendre le chargement complet de la page
     window.onload = function() {
-      // Initialiser Supabase
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      document.getElementById('loan-date').valueAsDate = new Date();
 
-      // Associer le clic sur Se Connecter
       document.getElementById('btn-login').onclick = handleLogin;
+      document.getElementById('btn-logout').onclick = handleLogout;
       document.getElementById('btn-add').onclick = handleAddLoan;
+
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          document.getElementById('user-email-display').innerText = session.user.email;
+          document.getElementById('user-badge').classList.remove('hidden');
+          document.getElementById('user-badge').classList.add('flex');
+          showApp();
+          loadLoansList();
+        } else {
+          document.getElementById('user-badge').classList.add('hidden');
+          showLogin();
+        }
+      });
     };
 
     async function handleLogin() {
-      const email = document.getElementById('txt-email').value;
-      const password = document.getElementById('txt-pass').value;
+      const email = document.getElementById('txt-email').value.trim();
+      const password = document.getElementById('txt-pass').value.trim();
       const statusDiv = document.getElementById('login-status');
 
-      statusDiv.innerText = "Tentative de connexion...";
+      statusDiv.innerText = "Connexion...";
 
       if (!email || !password) {
-        statusDiv.innerText = "Veuillez entrer un email et un mot de passe.";
+        statusDiv.innerText = "Veuillez saisir votre email et mot de passe.";
         return;
       }
 
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) statusDiv.innerText = "Erreur : " + error.message;
+      else statusDiv.innerText = "";
+    }
 
-      if (error) {
-        statusDiv.innerText = "Erreur : " + error.message;
-      } else {
-        statusDiv.innerText = "";
-        document.getElementById('box-login').classList.add('hidden');
-        document.getElementById('box-app').classList.remove('hidden');
-        loadLoansList();
-      }
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+    }
+
+    // Convertir une photo uploadée en chaîne Base64 légère pour enregistrement direct
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
     }
 
     async function handleAddLoan() {
-      const obj = document.getElementById('loan-obj').value;
-      const who = document.getElementById('loan-who').value;
+      const obj = document.getElementById('loan-obj').value.trim();
+      const who = document.getElementById('loan-who').value.trim();
+      const dateVal = document.getElementById('loan-date').value;
+      const notes = document.getElementById('loan-notes').value.trim();
+      const fileInput = document.getElementById('loan-file');
 
-      if (!obj || !who) {
-        alert("Remplissez l'objet et le prénom.");
+      if (!obj || !who || !dateVal) {
+        alert("Veuillez renseigner au moins l'objet, le prénom et la date.");
         return;
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const btn = document.getElementById('btn-add');
+      btn.disabled = true;
+      btn.innerText = "Enregistrement...";
 
-      const { error } = await supabaseClient
-        .from('prets')
-        .insert([{ object_name: obj, borrower: who, date: today, returned: false }]);
+      let imageUrl = null;
+      if (fileInput.files && fileInput.files[0]) {
+        try {
+          imageUrl = await fileToBase64(fileInput.files[0]);
+        } catch (e) {
+          console.error("Erreur de lecture image:", e);
+        }
+      }
+
+      const payload = {
+        object_name: obj,
+        borrower: who,
+        date: dateVal,
+        returned: false,
+        notes: notes || null,
+        image_url: imageUrl
+      };
+
+      const { error } = await supabaseClient.from('prets').insert([payload]);
+
+      btn.disabled = false;
+      btn.innerHTML = "<span>➕ Enregistrer le prêt</span>";
 
       if (error) {
-        alert("Erreur ajout : " + error.message);
+        alert("Erreur d'ajout : " + error.message);
       } else {
         document.getElementById('loan-obj').value = '';
         document.getElementById('loan-who').value = '';
+        document.getElementById('loan-notes').value = '';
+        fileInput.value = '';
         loadLoansList();
       }
     }
 
     async function loadLoansList() {
       const container = document.getElementById('loans-container');
-      container.innerHTML = "Chargement...";
+      container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 text-sm">Chargement des prêts...</div>`;
 
       const { data, error } = await supabaseClient
         .from('prets')
-        .select('*');
+        .select('*')
+        .order('date', { ascending: false });
 
       if (error) {
-        container.innerHTML = "Erreur : " + error.message;
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-rose-500 text-sm">Erreur : ${error.message}</div>`;
         return;
       }
 
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p class='text-gray-500'>Aucun prêt enregistré.</p>";
+      allLoansData = data || [];
+      updateStats();
+      renderLoans();
+    }
+
+    function updateStats() {
+      const active = allLoansData.filter(l => !l.returned).length;
+      const returned = allLoansData.filter(l => l.returned).length;
+      document.getElementById('stat-active').innerText = active;
+      document.getElementById('stat-returned').innerText = returned;
+      document.getElementById('stat-total').innerText = allLoansData.length;
+    }
+
+    function renderLoans() {
+      const container = document.getElementById('loans-container');
+      const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+      let filtered = allLoansData.filter(loan => {
+        const matchSearch = loan.object_name.toLowerCase().includes(searchQuery) || 
+                            loan.borrower.toLowerCase().includes(searchQuery) ||
+                            (loan.notes && loan.notes.toLowerCase().includes(searchQuery));
+        
+        if (currentFilter === 'pending') return matchSearch && !loan.returned;
+        if (currentFilter === 'returned') return matchSearch && loan.returned;
+        return matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-sm">Aucun prêt ne correspond à votre recherche.</div>`;
         return;
       }
 
-      container.innerHTML = data.map(loan => `
-        <div class="p-2 border rounded flex justify-between items-center ${loan.returned ? 'bg-gray-100 opacity-50' : 'bg-white'}">
-          <div>
-            <b>${loan.object_name}</b> à ${loan.borrower} (${loan.date})
+      container.innerHTML = filtered.map(loan => `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between p-4 sm:p-5 relative ${loan.returned ? 'opacity-70 bg-slate-50' : ''}">
+          <div class="space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                ${loan.image_url ? 
+                  `<img src="${loan.image_url}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-sm flex-shrink-0">` : 
+                  `<div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-xl flex-shrink-0">📦</div>`
+                }
+                <div>
+                  <h3 class="font-bold text-slate-900 text-base leading-tight ${loan.returned ? 'line-through text-slate-400' : ''}">${escapeHtml(loan.object_name)}</h3>
+                  <p class="text-xs text-slate-500 font-medium mt-0.5">Prêté à <span class="text-indigo-600 font-semibold">${escapeHtml(loan.borrower)}</span></p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${loan.returned ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+                ${loan.returned ? 'Rendu' : 'En cours'}
+              </span>
+            </div>
+
+            ${loan.notes ? `<p class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 italic">📝 ${escapeHtml(loan.notes)}</p>` : ''}
           </div>
-          <button onclick="toggleReturnedItem(${loan.id}, ${!loan.returned})" class="text-xs bg-slate-200 px-2 py-1 rounded">
-            ${loan.returned ? 'Rendu' : 'Marquer rendu'}
-          </button>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+            <span>📅 ${loan.date}</span>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleReturnedItem(${loan.id}, ${!loan.returned})" class="px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors ${loan.returned ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'}">
+                ${loan.returned ? 'Marquer en cours' : 'Marquer rendu'}
+              </button>
+              <button onclick="deleteItem(${loan.id})" class="p-1.5 text-slate-400 hover:text-rose-600 transition-colors">
+                🗑️
+              </button>
+            </div>
+          </div>
         </div>
       `).join('');
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById(`filter-${filter}`);
+      activeBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+      activeBtn.classList.remove('text-slate-600');
+      renderLoans();
+    }
+
+    function filterLoans() {
+      renderLoans();
     }
 
     async function toggleReturnedItem(id, status) {
       await supabaseClient.from('prets').update({ returned: status }).eq('id', id);
       loadLoansList();
+    }
+
+    async function deleteItem(id) {
+      if (confirm("Supprimer définitivement ce prêt ?")) {
+        await supabaseClient.from('prets').delete().eq('id', id);
+        loadLoansList();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('box-login').classList.remove('hidden');
+      document.getElementById('box-app').classList.add('hidden');
+    }
+
+    function showApp() {
+      document.getElementById('box-login').classList.add('hidden');
+      document.getElementById('box-app').classList.remove('hidden');
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match]));
     }
   </script>
 </body>
