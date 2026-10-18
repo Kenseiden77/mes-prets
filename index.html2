@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion de Prêts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Client Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 sm:p-6">
+
+  <div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- En-tête -->
+    <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+      <h1 class="text-xl font-bold text-indigo-600">📦 Mes Prêts</h1>
+      <button id="logout-btn" onclick="logout()" class="hidden text-sm bg-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-300">
+        Déconnexion
+      </button>
+    </header>
+
+    <!-- SECTION 1 : Authentification (Connexion / Inscription / Réinitialisation) -->
+    <div id="auth-section" class="bg-white rounded-xl shadow-md p-6">
+      
+      <!-- Connexion / Inscription -->
+      <div id="login-box">
+        <h2 id="auth-title" class="text-2xl font-bold mb-4 text-center">Connexion</h2>
+        <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Adresse Email</label>
+            <input type="email" id="email" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium">Mot de passe</label>
+            <input type="password" id="password" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
+            Se connecter
+          </button>
+        </form>
+
+        <div class="mt-4 pt-4 border-t flex flex-col gap-2 text-center text-sm">
+          <button onclick="toggleAuthMode()" id="toggle-auth-btn" class="text-indigo-600 hover:underline">
+            Pas encore de compte ? S'inscrire
+          </button>
+          <button onclick="showResetPassword()" class="text-slate-500 hover:underline text-xs">
+            Mot de passe oublié ?
+          </button>
+        </div>
+      </div>
+
+      <!-- Mot de passe oublié -->
+      <div id="reset-box" class="hidden space-y-4">
+        <h2 class="text-xl font-bold text-center">Réinitialiser le mot de passe</h2>
+        <p class="text-sm text-slate-600">Saisissez votre email pour recevoir un lien de réinitialisation.</p>
+        <form onsubmit="handleResetPassword(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Adresse Email</label>
+            <input type="email" id="reset-email" required class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
+            Envoyer le lien
+          </button>
+        </form>
+        <button onclick="showLogin()" class="w-full text-sm text-slate-500 hover:underline text-center">
+          Retour à la connexion
+        </button>
+      </div>
+
+      <!-- Saisie du nouveau mot de passe -->
+      <div id="update-password-box" class="hidden space-y-4">
+        <h2 class="text-xl font-bold text-center">Nouveau mot de passe</h2>
+        <form onsubmit="handleUpdatePassword(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Nouveau mot de passe</label>
+            <input type="password" id="new-
