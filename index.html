@@ -115,7 +115,9 @@
   <script>
     // Configuration Supabase
     const SUPABASE_URL = "https://oascemhvoyroxtthwwkn.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_sgffKyzmN9mPizvRGMEKRA_ZPtLXUj0";
+    
+    // ⚠️ Mettez ici la clé qui commence par "eyJ..." (anon public)
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hc2NlbWh2b3lyb3h0dGh3d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjczMzYsImV4cCI6MjEwNzkwMzMzNn0.WPi_ErafVvZGD3Ubn2JTU5WSP_TldKXraXsSq0Ra8Vg";
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let isSignUpMode = false;
