@@ -74,4 +74,223 @@
         <form onsubmit="handleUpdatePassword(event)" class="space-y-4">
           <div>
             <label class="block text-sm font-medium">Nouveau mot de passe</label>
-            <input type="password" id="new-
+            <input type="password" id="new-password" required minlength="6" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700">
+            Mettre à jour le mot de passe
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- SECTION 2 : Dashboard Principal -->
+    <div id="app-section" class="hidden space-y-6">
+
+      <!-- Formulaire d'ajout de prêt -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-lg font-bold mb-4">Nouveau prêt</h2>
+        <form onsubmit="addLoan(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <input type="text" id="obj-name" placeholder="Objet (ex: Perceuse)" required class="p-2 border rounded-lg">
+          <input type="text" id="borrower" placeholder="À qui ? (ex: Thomas)" required class="p-2 border rounded-lg">
+          <input type="date" id="loan-date" required class="p-2 border rounded-lg">
+          <button type="submit" class="sm:col-span-3 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
+            Enregistrer le prêt
+          </button>
+        </form>
+      </div>
+
+      <!-- Liste des prêts -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-lg font-bold mb-4">Mes prêts enregistrés</h2>
+        <div id="loans-list" class="space-y-3">
+          <!-- Les prêts enregistrés s'affichent ici -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Configuration Supabase
+    const SUPABASE_URL = "https://oascemhvoyroxtthwwkn.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_sgffKyzmN9mPizvRGMEKRA_ZPtLXUj0";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let isSignUpMode = false;
+
+    // Initialisation
+    window.addEventListener('DOMContentLoaded', () => {
+      // Écouter les changements d'état d'authentification
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          document.getElementById('auth-section').classList.remove('hidden');
+          document.getElementById('app-section').classList.add('hidden');
+          document.getElementById('login-box').classList.add('hidden');
+          document.getElementById('reset-box').classList.add('hidden');
+          document.getElementById('update-password-box').classList.remove('hidden');
+        } else if (session) {
+          showDashboard();
+          loadLoans();
+        } else {
+          showAuthScreen();
+        }
+      });
+    });
+
+    // Connexion / Inscription
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (isSignUpMode) {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) alert("Erreur d'inscription : " + error.message);
+        else alert("Compte créé ! Un email de confirmation vous a été envoyé.");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) alert("Erreur de connexion : " + error.message);
+      }
+    }
+
+    // Demande de réinitialisation de mot de passe
+    async function handleResetPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('reset-email').value;
+      const redirectTo = window.location.href;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) {
+        alert("Erreur : " + error.message);
+      } else {
+        alert("Un email contenant le lien de réinitialisation vous a été envoyé !");
+        showLogin();
+      }
+    }
+
+    // Mise à jour du mot de passe
+    async function handleUpdatePassword(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById('new-password').value;
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        alert("Erreur lors de la mise à jour : " + error.message);
+      } else {
+        alert("Mot de passe mis à jour avec succès !");
+        document.getElementById('update-password-box').classList.add('hidden');
+        document.getElementById('login-box').classList.remove('hidden');
+      }
+    }
+
+    // Charger les prêts depuis la base
+    async function loadLoans() {
+      const { data: loans, error } = await supabase
+        .from('prets')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) {
+        console.error("Erreur de chargement :", error);
+        return;
+      }
+
+      const listContainer = document.getElementById('loans-list');
+      if (loans.length === 0) {
+        listContainer.innerHTML = `<p class="text-slate-500 text-center py-4">Aucun prêt enregistré.</p>`;
+        return;
+      }
+
+      listContainer.innerHTML = loans.map(loan => `
+        <div class="flex items-center justify-between p-3 border rounded-lg ${loan.returned ? 'bg-slate-50 opacity-60' : 'bg-white'}">
+          <div>
+            <div class="font-bold ${loan.returned ? 'line-through text-slate-500' : ''}">${escapeHtml(loan.object_name)}</div>
+            <div class="text-xs text-slate-500">Prêté à <b>${escapeHtml(loan.borrower)}</b> le ${loan.date}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleReturned(${loan.id}, ${!loan.returned})" 
+              class="text-xs px-3 py-1.5 rounded-lg text-white font-medium ${loan.returned ? 'bg-slate-500 hover:bg-slate-600' : 'bg-emerald-600 hover:bg-emerald-700'}">
+              ${loan.returned ? 'Marquer à rendre' : 'Marquer rendu'}
+            </button>
+            <button onclick="deleteLoan(${loan.id})" class="text-xs text-red-500 hover:text-red-700 p-1">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Ajouter un nouveau prêt
+    async function addLoan(e) {
+      e.preventDefault();
+      const object_name = document.getElementById('obj-name').value;
+      const borrower = document.getElementById('borrower').value;
+      const date = document.getElementById('loan-date').value;
+
+      const { error } = await supabase.from('prets').insert([{ object_name, borrower, date }]);
+      if (error) {
+        alert("Erreur lors de l'ajout : " + error.message);
+      } else {
+        document.getElementById('obj-name').value = '';
+        document.getElementById('borrower').value = '';
+        loadLoans();
+      }
+    }
+
+    // Modifier l'état rendu / en cours
+    async function toggleReturned(id, newStatus) {
+      const { error } = await supabase.from('prets').update({ returned: newStatus }).eq('id', id);
+      if (!error) loadLoans();
+    }
+
+    // Supprimer un prêt
+    async function deleteLoan(id) {
+      if (confirm("Supprimer ce prêt ?")) {
+        const { error } = await supabase.from('prets').delete().eq('id', id);
+        if (!error) loadLoans();
+      }
+    }
+
+    // Déconnexion
+    async function logout() {
+      await supabase.auth.signOut();
+    }
+
+    // Fonctions d'affichage
+    function showAuthScreen() {
+      document.getElementById('auth-section').classList.remove('hidden');
+      document.getElementById('app-section').classList.add('hidden');
+      document.getElementById('logout-btn').classList.add('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('app-section').classList.remove('hidden');
+      document.getElementById('logout-btn').classList.remove('hidden');
+    }
+
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById('auth-title').innerText = isSignUpMode ? "Inscription" : "Connexion";
+      document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "S'inscrire" : "Se connecter";
+      document.getElementById('toggle-auth-btn').innerText = isSignUpMode ? "Déjà un compte ? Se connecter" : "Pas encore de compte ? S'inscrire";
+    }
+
+    function showResetPassword() {
+      document.getElementById('login-box').classList.add('hidden');
+      document.getElementById('reset-box').classList.remove('hidden');
+    }
+
+    function showLogin() {
+      document.getElementById('reset-box').classList.add('hidden');
+      document.getElementById('login-box').classList.remove('hidden');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match]));
+    }
+  </script>
+</body>
+</html>
