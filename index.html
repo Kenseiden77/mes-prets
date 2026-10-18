@@ -3,111 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion de Prêts</title>
+  <title>Mes Prêts - Test Simple</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 p-4 sm:p-6">
+<body class="bg-slate-100 p-6">
 
-  <div class="max-w-2xl mx-auto space-y-6">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow space-y-4">
+    <h1 class="text-xl font-bold text-center">📦 Mes Prêts (v1.0.3)</h1>
 
-    <!-- En-tête -->
-    <header class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-bold text-indigo-600">📦 Mes Prêts</h1>
-        <span class="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full border">v1.0.2</span>
+    <!-- FORMULAIRE DE CONNEXION -->
+    <div id="box-login" class="space-y-3">
+      <div>
+        <label class="block text-sm font-medium">Email</label>
+        <input type="email" id="txt-email" class="w-full p-2 border rounded">
       </div>
-      <button id="logout-btn" onclick="logout()" class="hidden text-sm bg-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-300">
-        Déconnexion
+      <div>
+        <label class="block text-sm font-medium">Mot de passe</label>
+        <input type="password" id="txt-pass" class="w-full p-2 border rounded">
+      </div>
+      <button id="btn-login" class="w-full bg-indigo-600 text-white py-2 rounded font-bold">
+        Se connecter
       </button>
-    </header>
-
-    <!-- SECTION 1 : Authentification -->
-    <div id="auth-section" class="bg-white rounded-xl shadow-md p-6">
-      
-      <!-- Box Connexion / Inscription -->
-      <div id="login-box">
-        <h2 id="auth-title" class="text-2xl font-bold mb-4 text-center">Connexion</h2>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium">Adresse Email</label>
-            <input type="email" id="email" placeholder="votre@email.com" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium">Mot de passe</label>
-            <input type="password" id="password" placeholder="••••••••" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-          </div>
-          
-          <button id="submit-auth-btn" onclick="submitAuth()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
-            Se connecter
-          </button>
-        </div>
-
-        <div class="mt-4 pt-4 border-t flex flex-col gap-2 text-center text-sm">
-          <button onclick="toggleAuthMode()" id="toggle-auth-btn" class="text-indigo-600 hover:underline">
-            Pas encore de compte ? S'inscrire
-          </button>
-          <button onclick="showResetPassword()" class="text-slate-500 hover:underline text-xs">
-            Mot de passe oublié ?
-          </button>
-        </div>
-      </div>
-
-      <!-- Box Mot de passe oublié -->
-      <div id="reset-box" class="hidden space-y-4">
-        <h2 class="text-xl font-bold text-center">Réinitialiser le mot de passe</h2>
-        <p class="text-sm text-slate-600">Saisissez votre email pour recevoir un lien de réinitialisation.</p>
-        <div>
-          <label class="block text-sm font-medium">Adresse Email</label>
-          <input type="email" id="reset-email" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <button onclick="handleResetPassword()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
-          Envoyer le lien
-        </button>
-        <button onclick="showLogin()" class="w-full text-sm text-slate-500 hover:underline text-center">
-          Retour à la connexion
-        </button>
-      </div>
-
-      <!-- Box Nouveau mot de passe -->
-      <div id="update-password-box" class="hidden space-y-4">
-        <h2 class="text-xl font-bold text-center">Nouveau mot de passe</h2>
-        <div>
-          <label class="block text-sm font-medium">Nouveau mot de passe</label>
-          <input type="password" id="new-password" minlength="6" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <button onclick="handleUpdatePassword()" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700">
-          Mettre à jour le mot de passe
-        </button>
-      </div>
-
+      <div id="login-status" class="text-xs text-red-500 font-semibold text-center"></div>
     </div>
 
-    <!-- SECTION 2 : Dashboard Principal -->
-    <div id="app-section" class="hidden space-y-6">
-
-      <!-- Formulaire d'ajout -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-lg font-bold mb-4">Nouveau prêt</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <input type="text" id="obj-name" placeholder="Objet (ex: Perceuse)" class="p-2 border rounded-lg">
-          <input type="text" id="borrower" placeholder="À qui ? (ex: Thomas)" class="p-2 border rounded-lg">
-          <input type="date" id="loan-date" class="p-2 border rounded-lg">
-          <button onclick="addLoan()" class="sm:col-span-3 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700">
-            Enregistrer le prêt
-          </button>
-        </div>
+    <!-- ZONE PRÊTS (Cachée au départ) -->
+    <div id="box-app" class="hidden space-y-4">
+      <div class="p-3 bg-emerald-100 text-emerald-800 rounded text-sm font-semibold text-center">
+        ✅ Connecté !
       </div>
 
-      <!-- Liste des prêts -->
-      <div class="bg-white rounded-xl shadow-md p-6">
-        <h2 class="text-lg font-bold mb-4">Mes prêts enregistrés</h2>
-        <div id="loans-list" class="space-y-3">
-          <!-- Les prêts s'affichent ici -->
-        </div>
+      <div class="border-t pt-3 space-y-2">
+        <h2 class="font-bold">Ajouter un prêt</h2>
+        <input type="text" id="loan-obj" placeholder="Objet (ex: Perceuse)" class="w-full p-2 border rounded">
+        <input type="text" id="loan-who" placeholder="À qui ? (ex: Julien)" class="w-full p-2 border rounded">
+        <button id="btn-add" class="w-full bg-emerald-600 text-white py-2 rounded font-bold">
+          Enregistrer le prêt
+        </button>
       </div>
 
+      <div class="border-t pt-3 space-y-2">
+        <h2 class="font-bold">Liste des prêts</h2>
+        <div id="loans-container" class="space-y-2 text-sm"></div>
+      </div>
     </div>
 
   </div>
@@ -116,217 +55,102 @@
     const SUPABASE_URL = "https://oascemhvoyroxtthwwkn.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hc2NlbWh2b3lyb3h0dGh3d2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMjczMzYsImV4cCI6MjEwNzkwMzMzNn0.WPi_ErafVvZGD3Ubn2JTU5WSP_TldKXraXsSq0Ra8Vg";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let isSignUpMode = false;
+    let supabaseClient = null;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      // Définir la date du jour par défaut dans le formulaire
-      document.getElementById('loan-date').valueAsDate = new Date();
+    // Attendre le chargement complet de la page
+    window.onload = function() {
+      // Initialiser Supabase
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      // Écouter les changements de session
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          showUpdatePasswordScreen();
-        } else if (session) {
-          showDashboard();
-          loadLoans();
-        } else {
-          showAuthScreen();
-        }
-      });
-    });
+      // Associer le clic sur Se Connecter
+      document.getElementById('btn-login').onclick = handleLogin;
+      document.getElementById('btn-add').onclick = handleAddLoan;
+    };
 
-    // Soumettre Authentification
-    async function submitAuth() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+    async function handleLogin() {
+      const email = document.getElementById('txt-email').value;
+      const password = document.getElementById('txt-pass').value;
+      const statusDiv = document.getElementById('login-status');
+
+      statusDiv.innerText = "Tentative de connexion...";
 
       if (!email || !password) {
-        alert("Veuillez remplir l'email et le mot de passe.");
+        statusDiv.innerText = "Veuillez entrer un email et un mot de passe.";
         return;
       }
 
-      const btn = document.getElementById('submit-auth-btn');
-      btn.disabled = true;
-      btn.innerText = "Chargement...";
-
-      try {
-        if (isSignUpMode) {
-          const { data, error } = await supabase.auth.signUp({ email, password });
-          if (error) {
-            alert("Erreur d'inscription : " + error.message);
-          } else {
-            alert("Compte créé ! Si la confirmation par mail est activée, vérifiez vos emails, sinon vous pouvez vous connecter.");
-          }
-        } else {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-          if (error) {
-            alert("Erreur de connexion : " + error.message);
-          }
-        }
-      } catch (err) {
-        alert("Erreur inattendue : " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = isSignUpMode ? "S'inscrire" : "Se connecter";
-      }
-    }
-
-    // Demande de réinitialisation
-    async function handleResetPassword() {
-      const email = document.getElementById('reset-email').value.trim();
-      if (!email) {
-        alert("Veuillez saisir votre email.");
-        return;
-      }
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.href
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
       });
 
       if (error) {
-        alert("Erreur : " + error.message);
+        statusDiv.innerText = "Erreur : " + error.message;
       } else {
-        alert("Un email contenant le lien de réinitialisation vous a été envoyé !");
-        showLogin();
+        statusDiv.innerText = "";
+        document.getElementById('box-login').classList.add('hidden');
+        document.getElementById('box-app').classList.remove('hidden');
+        loadLoansList();
       }
     }
 
-    // Changement de mot de passe
-    async function handleUpdatePassword() {
-      const newPassword = document.getElementById('new-password').value.trim();
-      if (newPassword.length < 6) {
-        alert("Le mot de passe doit faire au moins 6 caractères.");
+    async function handleAddLoan() {
+      const obj = document.getElementById('loan-obj').value;
+      const who = document.getElementById('loan-who').value;
+
+      if (!obj || !who) {
+        alert("Remplissez l'objet et le prénom.");
         return;
       }
 
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        alert("Erreur : " + error.message);
-      } else {
-        alert("Mot de passe mis à jour avec succès !");
-        showLogin();
-      }
-    }
+      const today = new Date().toISOString().split('T')[0];
 
-    // Charger les prêts
-    async function loadLoans() {
-      const { data: loans, error } = await supabase
+      const { error } = await supabaseClient
         .from('prets')
-        .select('*')
-        .order('date', { ascending: false });
+        .insert([{ object_name: obj, borrower: who, date: today, returned: false }]);
 
       if (error) {
-        console.error("Erreur de chargement :", error);
+        alert("Erreur ajout : " + error.message);
+      } else {
+        document.getElementById('loan-obj').value = '';
+        document.getElementById('loan-who').value = '';
+        loadLoansList();
+      }
+    }
+
+    async function loadLoansList() {
+      const container = document.getElementById('loans-container');
+      container.innerHTML = "Chargement...";
+
+      const { data, error } = await supabaseClient
+        .from('prets')
+        .select('*');
+
+      if (error) {
+        container.innerHTML = "Erreur : " + error.message;
         return;
       }
 
-      const listContainer = document.getElementById('loans-list');
-      if (!loans || loans.length === 0) {
-        listContainer.innerHTML = `<p class="text-slate-500 text-center py-4">Aucun prêt enregistré.</p>`;
+      if (!data || data.length === 0) {
+        container.innerHTML = "<p class='text-gray-500'>Aucun prêt enregistré.</p>";
         return;
       }
 
-      listContainer.innerHTML = loans.map(loan => `
-        <div class="flex items-center justify-between p-3 border rounded-lg ${loan.returned ? 'bg-slate-50 opacity-60' : 'bg-white'}">
+      container.innerHTML = data.map(loan => `
+        <div class="p-2 border rounded flex justify-between items-center ${loan.returned ? 'bg-gray-100 opacity-50' : 'bg-white'}">
           <div>
-            <div class="font-bold ${loan.returned ? 'line-through text-slate-500' : ''}">${escapeHtml(loan.object_name)}</div>
-            <div class="text-xs text-slate-500">Prêté à <b>${escapeHtml(loan.borrower)}</b> le ${loan.date}</div>
+            <b>${loan.object_name}</b> à ${loan.borrower} (${loan.date})
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="toggleReturned(${loan.id}, ${!loan.returned})" 
-              class="text-xs px-3 py-1.5 rounded-lg text-white font-medium ${loan.returned ? 'bg-slate-500 hover:bg-slate-600' : 'bg-emerald-600 hover:bg-emerald-700'}">
-              ${loan.returned ? 'Marquer à rendre' : 'Marquer rendu'}
-            </button>
-            <button onclick="deleteLoan(${loan.id})" class="text-xs text-red-500 hover:text-red-700 p-1">
-              🗑️
-            </button>
-          </div>
+          <button onclick="toggleReturnedItem(${loan.id}, ${!loan.returned})" class="text-xs bg-slate-200 px-2 py-1 rounded">
+            ${loan.returned ? 'Rendu' : 'Marquer rendu'}
+          </button>
         </div>
       `).join('');
     }
 
-    // Ajouter un prêt
-    async function addLoan() {
-      const object_name = document.getElementById('obj-name').value.trim();
-      const borrower = document.getElementById('borrower').value.trim();
-      const date = document.getElementById('loan-date').value;
-
-      if (!object_name || !borrower || !date) {
-        alert("Veuillez remplir tous les champs du prêt.");
-        return;
-      }
-
-      const { error } = await supabase.from('prets').insert([{ object_name, borrower, date }]);
-      if (error) {
-        alert("Erreur lors de l'ajout : " + error.message);
-      } else {
-        document.getElementById('obj-name').value = '';
-        document.getElementById('borrower').value = '';
-        loadLoans();
-      }
-    }
-
-    // Marquer comme rendu / à rendre
-    async function toggleReturned(id, newStatus) {
-      const { error } = await supabase.from('prets').update({ returned: newStatus }).eq('id', id);
-      if (!error) loadLoans();
-    }
-
-    // Supprimer un prêt
-    async function deleteLoan(id) {
-      if (confirm("Supprimer ce prêt ?")) {
-        const { error } = await supabase.from('prets').delete().eq('id', id);
-        if (!error) loadLoans();
-      }
-    }
-
-    // Déconnexion
-    async function logout() {
-      await supabase.auth.signOut();
-    }
-
-    // Bascules d'affichage
-    function showAuthScreen() {
-      document.getElementById('auth-section').classList.remove('hidden');
-      document.getElementById('app-section').classList.add('hidden');
-      document.getElementById('logout-btn').classList.add('hidden');
-    }
-
-    function showDashboard() {
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('app-section').classList.remove('hidden');
-      document.getElementById('logout-btn').classList.remove('hidden');
-    }
-
-    function toggleAuthMode() {
-      isSignUpMode = !isSignUpMode;
-      document.getElementById('auth-title').innerText = isSignUpMode ? "Inscription" : "Connexion";
-      document.getElementById('submit-auth-btn').innerText = isSignUpMode ? "S'inscrire" : "Se connecter";
-      document.getElementById('toggle-auth-btn').innerText = isSignUpMode ? "Déjà un compte ? Se connecter" : "Pas encore de compte ? S'inscrire";
-    }
-
-    function showResetPassword() {
-      document.getElementById('login-box').classList.add('hidden');
-      document.getElementById('reset-box').classList.remove('hidden');
-    }
-
-    function showLogin() {
-      document.getElementById('reset-box').classList.add('hidden');
-      document.getElementById('update-password-box').classList.add('hidden');
-      document.getElementById('login-box').classList.remove('hidden');
-    }
-
-    function showUpdatePasswordScreen() {
-      document.getElementById('auth-section').classList.remove('hidden');
-      document.getElementById('app-section').classList.add('hidden');
-      document.getElementById('login-box').classList.add('hidden');
-      document.getElementById('reset-box').classList.add('hidden');
-      document.getElementById('update-password-box').classList.remove('hidden');
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[match]));
+    async function toggleReturnedItem(id, status) {
+      await supabaseClient.from('prets').update({ returned: status }).eq('id', id);
+      loadLoansList();
     }
   </script>
 </body>
